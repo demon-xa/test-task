@@ -1,0 +1,14 @@
+# Stage 1: Build Stage
+FROM node:16.14.0 as backbuild
+WORKDIR /app
+COPY . .
+RUN yarn install && yarn build
+
+# Stage 2: Prod Stage
+FROM node:16.14.0-alpine
+WORKDIR /app
+COPY --from=backbuild /app/dist ./dist
+#COPY --from=backbuild /app/node_modules ./node_modules
+COPY ./package.json ./yarn.lock ./start ./jest.config.js ./tsconfig.json .
+RUN chmod +x start
+CMD ["sh", "start"]

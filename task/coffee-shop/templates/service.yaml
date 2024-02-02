@@ -1,0 +1,37 @@
+# frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "coffee-shop.fullname" . }}-front
+  labels:
+    {{- include "coffee-shop.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service_frontend_app.type }}
+  ports:
+    - port: {{ .Values.service_frontend_app.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: frontend
+    {{- include "coffee-shop.selectorLabels" . | nindent 4 }}
+
+# backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "coffee-shop.fullname" . }}-back
+  labels:
+    {{- include "coffee-shop.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service_backend_app.type }}
+  ports:
+    - port: {{ .Values.service_backend_app.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: backend
+    {{- include "coffee-shop.selectorLabels" . | nindent 4 }}

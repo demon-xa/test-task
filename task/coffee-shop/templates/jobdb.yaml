@@ -1,0 +1,58 @@
+{{- if and .Values.postgresql.builtin }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: &job_name {{ include "coffee-shop.fullname" . }}-init-db
+  labels:
+    {{- include "coffee-shop.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      name: *job_name
+      labels:
+        {{- include "coffee-shop.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: *job_name
+          image: {{ .Values.postgresql.jobInitDB.image }}:{{ .Values.postgresql.jobInitDB.tag}}
+          imagePullPolicy: {{ .Values.postgresql.jobInitDB.imagePullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "coffee-shop.fullname" . }}
+            - secretRef:
+                name: {{ include "coffee-shop.fullname" . }}-secrets
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Release.Name }}-postgresql"
+                  key: postgres-password
+          command:
+            - bash
+            - -ec
+            - |
+              export POSTGRES_COMMAND="psql -w -U postgres -d postgres -h $POSTGRES_HOST -p $POSTGRES_PORT"
+              # Test connection
+              $POSTGRES_COMMAND -tc '\du'
+
+              # create db
+              $POSTGRES_COMMAND -lqt | cut -d \| -f 1 | grep -qw $POSTGRES_DB || \
+              $POSTGRES_COMMAND -c "CREATE DATABASE $POSTGRES_DB"
+
+              # Create user and test
+              $POSTGRES_COMMAND -tc '\du' | cut -d \| -f 1 | grep -qw $POSTGRES_USER || \
+              $POSTGRES_COMMAND -c "CREATE USER $POSTGRES_USER WITH ENCRYPTED PASSWORD '$POSTGRES_PASSWORD'"
+
+              # Grants
+              $POSTGRES_COMMAND -c "GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB to $POSTGRES_USER"
+
+              # pgcrypto
+              export POSTGRES_COMMAND="psql -w -U postgres -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT"
+              $POSTGRES_COMMAND -c '\dx' | grep -qw pgcrypto || \
+              $POSTGRES_COMMAND -c "CREATE EXTENSION pgcrypto"
+
+              # Create table
+              $POSTGRES_COMMAND -c "CREATE TABLE drinks(id serial primary key, title text, balance int);"
+              $POSTGRES_COMMAND -c "GRANT ALL PRIVILEGES ON TABLE drinks TO $POSTGRES_USER;"
+{{- end}}

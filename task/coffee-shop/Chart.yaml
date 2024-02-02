@@ -1,0 +1,16 @@
+apiVersion: v2
+name: coffee-shop
+description: A Coffee shop Helm chart for Kubernetes for creative.co
+type: application
+version: 0.1.0
+appVersion: "0.0.1"
+maintainers:
+  - name: Dmitrii S
+    email: dmit5sm@yandex.ru
+    url: coffee-shop.co
+dependencies:
+ - name: postgresql
+   version: 11.1.28
+   repository: https://raw.githubusercontent.com/bitnami/charts/eb5f9a9513d987b519f0ecd732e7031241c50328/bitnami
+   condition: postgresql.builtin
+#bitnami-pre-2022/postgresql     11.1.28

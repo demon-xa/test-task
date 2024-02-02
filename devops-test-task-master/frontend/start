@@ -1,0 +1,19 @@
+NODE_ENV="${NODE_ENV}"
+
+if [ "$NODE_ENV" == "development" ]; then
+    echo "Running commands for dev environment"
+    source .env.local
+    yarn install
+    yarn dev
+elif [ "$NODE_ENV" == "production" ]; then
+    echo "Running commands for prod environment"
+    export NODE_ENV=development
+    export REACT_APP_API_URL='http://localhost'
+    yarn install
+    export NODE_ENV=production
+    yarn build
+else
+    echo "Unknown NODE_ENV: $NODE_ENV"
+    exit 1
+fi
+
