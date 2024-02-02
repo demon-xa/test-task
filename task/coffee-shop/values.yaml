@@ -1,0 +1,133 @@
+## Default values for coffee-shop.
+## This is a YAML-formatted file.
+## Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+image_back:
+  repository: demonxa/coffee-shop-back
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v0.1"
+
+image_front:
+  repository: demonxa/coffee-shop-front
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v0.3"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount: {}
+
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service_backend_app:
+  type: ClusterIP
+  port: 8080
+
+service_frontend_app:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  pathType: Prefix
+
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+livenessProbe: {}
+
+
+readinessProbe: {}
+
+
+app_config:
+  node_env: "production"
+  port: "8080"
+  server_address: "0.0.0.0"
+  api_key_token: "token"
+
+net_policy:
+  enabled: true
+
+postgresql:
+  builtin: true
+  # common params
+  postgresDBName: "coffee_prod"
+  postgresUser: "coffee"
+  postgresPassword: "postgres"
+  # external DB
+  externalDB:
+    pgHost: "192.168.100.100"
+    pgPort: "9999"
+  # internal DB
+  internalDB:
+    pgPort: "5432"
+  jobInitDB:
+    image: "postgres"
+    tag: "14.2-alpine"
+    imagePullPolicy: IfNotPresent
+  global:
+    storageClass: ""
+  clusterDomain: cluster.local
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: 14.2.0-debian-10-r88
+  auth:
+    # admin password generate in secret "test-postgresql"
+    postgresPassword: ""
+  architecture: replication
+  shmVolume:
+    sizeLimit: 1Gi
+  primary:
+    resources:
+      limits:
+        memory: ${limits_memory}
+        cpu: 1000m
+      requests:
+        memory: ${limits_memory}
+        cpu: 1000m
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 4Gi
+  readReplicas:
+    resources:
+      limits:
+        memory: ${limits_memory}
+        cpu: 1000m
+      requests:
+        memory: ${limits_memory}
+        cpu: 1000m
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 4Gi

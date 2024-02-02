@@ -1,0 +1,35 @@
+#!/bin/sh
+
+NODE_ENV="${NODE_ENV}"
+
+if [ "$NODE_ENV" == "development" ]; then
+    echo "Running commands for dev environment"
+    source .env.local
+    yarn install
+    yarn migrations:dev
+    yarn seeds:dev
+    yarn server:dev
+elif [ "$NODE_ENV" == "prodaction" ]; then
+    echo "Running commands for prod environment"
+    yarn install
+    yarn migrations:prod
+    yarn seeds:prod
+    yarn server:prod
+else
+    echo "Unknown NODE_ENV: $NODE_ENV"
+    exit 1
+fi
+
+# while true; do
+#   PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 1" >/dev/null 2>&1
+#   if [ $? -eq 0 ]; then
+#     echo "db connection successful."
+#     yarn migrations:dev
+#     yarn seeds:dev
+#     break
+#   else
+#     echo "Unable to connect to db"
+#     nslookup db
+#     sleep 5
+#   fi
+# done

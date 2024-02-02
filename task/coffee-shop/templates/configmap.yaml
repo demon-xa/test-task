@@ -1,0 +1,38 @@
+# back configmap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "coffee-shop.fullname" . }}
+  labels:
+    {{- include "coffee-shop.labels" . | nindent 4 }}
+data:
+  NODE_ENV: "{{ .Values.app_config.node_env }}"
+  SERVER_ADDRESS: "{{ .Values.app_config.server_address }}"
+  PORT: "{{ .Values.app_config.port }}"
+  POSTGRES_USER: "{{ .Values.postgresql.postgresUser }}"
+  POSTGRES_DB: "{{ .Values.postgresql.postgresDBName }}"
+  # DB
+  {{- if .Values.postgresql.builtin }}
+  # internal psql
+  POSTGRES_HOST: "{{ .Release.Name }}-postgresql-primary"
+  POSTGRES_PORT: "{{ .Values.postgresql.internalDB.pgPort }}"
+  DATABASE_URL: "postgres://{{ .Values.postgresql.postgresUser }}:{{ .Values.postgresql.postgresPassword }}@{{ .Release.Name }}-postgresql-primary:{{ .Values.postgresql.internalDB.pgPort }}/{{ .Values.postgresql.postgresDBName }}"
+  {{- else}}
+  # external psql
+  POSTGRES_HOST: "{{ .Values.postgresql.externalDB.pgHost }}"
+  POSTGRES_PORT: "{{ .Values.postgresql.externalDB.pgPort }}"
+  DATABASE_URL: "postgres://{{ .Values.postgresql.postgresUser }}:{{ .Values.postgresql.postgresPassword }}@{{ .Values.postgresql.externalDB.pgHost }}:{{ .Values.postgresql.externalDB.pgPort }}/{{ .Values.postgresql.postgresDBName }}"
+  {{- end}}
+
+# front configmap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "coffee-shop.fullname" . }}-front-cm
+  labels:
+    {{- include "coffee-shop.labels" . | nindent 4 }}
+data:
+  NODE_ENV: "{{ .Values.app_config.node_env }}"
+  REACT_APP_API_URL: "http://{{ include "coffee-shop.fullname" . }}-back:{{ .Values.app_config.port }}"

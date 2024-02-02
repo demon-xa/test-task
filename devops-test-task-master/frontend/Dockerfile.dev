@@ -1,0 +1,5 @@
+FROM node:16.14.0-alpine
+WORKDIR /app
+COPY ./frontend .
+RUN chmod +x start
+CMD ["sh", "start"]
